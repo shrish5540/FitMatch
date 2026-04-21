@@ -84,4 +84,20 @@ const getMe = async (req, res) => {
   }
 }
 
-module.exports = { signup, login,getMe }
+const updateMe = async (req, res) => {
+  try {
+    const updates = req.body
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      updates,
+      { new: true }
+    ).select('-password')
+
+    res.status(200).json(user)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+module.exports = { signup, login, getMe, updateMe }
+
