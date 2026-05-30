@@ -51,6 +51,13 @@ const userSchema = new mongoose.Schema({
 lastCheckIn: {
   type: Date
 },
+totalCheckIns: {
+  type: Number,
+  default: 0
+},
+checkIns: [{
+  type: Date
+}],
 workoutPlan: {
   type: String
 },

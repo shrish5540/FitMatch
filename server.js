@@ -15,13 +15,22 @@ const streakRoutes = require('./routes/streakRoutes')
 
 connectDB()
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://fitmatch.vercel.app'
+]
+
 const app = express()
 const server = http.createServer(app)
 const io = new Server(server, {
-  cors: { origin: '*' }
+  cors: {
+    origin: allowedOrigins,
+    credentials: true
+  }
 })
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://fitmatch.vercel.app'],
+  origin: allowedOrigins,
   credentials: true
 }))
 app.use(express.json())
@@ -45,8 +54,18 @@ io.on('connection', (socket) => {
   })
 
   socket.on('sendMessage', async ({ matchId, senderId, text }) => {
-    const message = await Message.create({ matchId, senderId, text })
-    io.to(matchId).emit('receiveMessage', message)
+    try {
+      if (!matchId || !senderId || !text?.trim()) return
+
+      const message = await Message.create({
+        matchId,
+        senderId,
+        text: text.trim()
+      })
+      io.to(matchId).emit('receiveMessage', message)
+    } catch (error) {
+      console.error('sendMessage error:', error.message)
+    }
   })
 
   socket.on('disconnect', () => {

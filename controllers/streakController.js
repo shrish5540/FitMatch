@@ -1,5 +1,11 @@
 const User = require('../models/User')
 
+const formatStreakResponse = (user) => ({
+  currentStreak: user.streak ?? 0,
+  totalCheckIns: user.totalCheckIns ?? 0,
+  checkIns: user.checkIns ?? []
+})
+
 const checkIn = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
@@ -26,9 +32,23 @@ const checkIn = async (req, res) => {
     }
 
     user.lastCheckIn = today
+    user.totalCheckIns = (user.totalCheckIns || 0) + 1
+
+    const alreadyLogged = (user.checkIns || []).some((d) => {
+      const day = new Date(d)
+      day.setHours(0, 0, 0, 0)
+      return day.getTime() === today.getTime()
+    })
+    if (!alreadyLogged) {
+      user.checkIns = [...(user.checkIns || []), today]
+    }
+
     await user.save()
 
-    res.status(200).json({ message: 'Check-in successful', streak: user.streak })
+    res.status(200).json({
+      message: 'Check-in successful',
+      ...formatStreakResponse(user)
+    })
 
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -38,7 +58,7 @@ const checkIn = async (req, res) => {
 const getStreak = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
-    res.status(200).json({ streak: user.streak })
+    res.status(200).json(formatStreakResponse(user))
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -57,4 +77,4 @@ const getLeaderboard = async (req, res) => {
   }
 }
 
-module.exports = { checkIn, getStreak ,getLeaderboard}
+module.exports = { checkIn, getStreak, getLeaderboard }
