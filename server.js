@@ -18,7 +18,7 @@ connectDB()
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://fitmatch.vercel.app'
+  'https://fitmatch-frontend-alpha.vercel.app'
 ]
 
 const app = express()
